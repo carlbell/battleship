@@ -28,15 +28,19 @@ enum Orientation : unsigned char {horizontal = 0, vertical};
 
 enum Difficulty : unsigned char {easy = 0, normal, impossible};
 
-//enum Ship : unsigned char {Aircraft_Carrier, Battleship, Cruiser, Submarine, PT_Cruiser};
+
+enum Ship_name : unsigned char {Carrier, Bship, Cruiser, Sub, PT};
 
 
-/*
+//ship structure to store ship type info
 struct Ship {
-    public:
-    private:
+    string long_name;
+    char ch_name;
+    int length;
+    int hits;
+    bool sunk;
 };
- */
+
 
 //Function to print the board. Input is an array with 100 elements containing the board state.
 void print_board(const array<char,100>board){
@@ -430,6 +434,16 @@ int main() {
         //int num_ships = 5;
         //define ships here
         //make ship object with values of long name, short name, length, hits taken, methods of .issunk() if hits taken=length return 1 else return 0
+        
+        //array of ship structures: long_name, ch_name, length, hits, sunk
+        array<Ship,5> ship_type = {{
+            {"Aircraft Carrier" , 'A', 5, 0, 0},
+            {"Battleship"       , 'B', 4, 0, 0},
+            {"Cruiser"          , 'C', 3, 0, 0},
+            {"Submarine"        , 'S', 3, 0, 0},
+            {"Patrol Boat"      , 'P', 2, 0, 0}
+        }};
+        
         
         //boards
         //char board_1_top[100];  //player top board (contains guesses)

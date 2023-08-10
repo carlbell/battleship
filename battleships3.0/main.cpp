@@ -3,9 +3,8 @@
 //
 //  Created by Bennet Lum on 8/5/23.
 //
-//  Battleship game! User can place ships and play against a bot. Bot uses random guessing.
+//  Battleship game! User can place ships and play against a bot. Bot has 3 difficulty levels.
 
-//fixed issue in 2 locations about a0 being a valid coordinate
 //consider fixing array for loops that add '.' with .fill('.') function
 //change c style array to std array
 //remove endls as endl clears buffer
@@ -21,6 +20,7 @@
 
 #include <iostream>
 #include <string>
+#include <array>
 
 using namespace std;
 
@@ -28,18 +28,22 @@ enum Orientation : unsigned char {horizontal = 0, vertical};
 
 enum Difficulty : unsigned char {easy = 0, normal, impossible};
 
-enum Ship : unsigned char {Aircraft_Carrier, Battleship, Cruiser, Submarine, PT_Cruiser};
+
+enum Ship_name : unsigned char {Carrier, Bship, Cruiser, Sub, PT};
 
 
-/*
-class Ship {
-    public:
-    private:
+//ship structure to store ship type info
+struct Ship {
+    string long_name;
+    char ch_name;
+    int length;
+    int hits;
+    bool sunk;
 };
- */
+
 
 //Function to print the board. Input is an array with 100 elements containing the board state.
-void print_board(char board[]){
+void print_board(const array<char,100>board){
     cout << "   A B C D E F G H I J\n";
     for (int i=0; i<9; i++){
         cout <<" " << i+1 << " ";
@@ -57,7 +61,7 @@ void print_board(char board[]){
 
 /*Bot place ship. Function to randomly select a squares for the bot to place a ship. Inputs: board[] is an array of length 100 and is the board that ships will be placed on to. ship_length is the size of the ship between 2-5. ship_char is the character used to denote the ship being placed.
 */
-void place_ship(char board[], int ship_length, char ship_char){
+void place_ship(array<char,100> &bottom_board, const int ship_length, const char ship_char) {
     bool valid = 0; //is the potential position of the ship allowed
     int col = 0;
     int row = 0;
@@ -77,7 +81,7 @@ void place_ship(char board[], int ship_length, char ship_char){
             row = rand()%10; //any row allowed
             //check that ship being placed doesnt overlap existing ship on board
             for (int i=0; i<ship_length; i++){
-                if (board[row*10+col+i]!='.') {valid = 0;}
+                if (bottom_board[row*10+col+i]!='.') {valid = 0;}
             }
         }
         // if orientation is vertical
@@ -86,7 +90,7 @@ void place_ship(char board[], int ship_length, char ship_char){
             row = rand()%(11-ship_length); //limits rows to prevent ship going off edge
             //check that ship being placed doesnt overlap existing ship on board
             for (int i=0; i<ship_length; i++){
-                if (board[(row+i)*10+col]!='.') {valid = 0;}
+                if (bottom_board[(row+i)*10+col]!='.') {valid = 0;}
             }
         }
     }
@@ -94,32 +98,33 @@ void place_ship(char board[], int ship_length, char ship_char){
     //change board characters to add ship to board
     if (orientation == horizontal){
         for (int i=0; i<ship_length; i++){
-            board[row*10+col+i] = ship_char;
+            bottom_board[row*10+col+i] = ship_char;
         }
     }
     else {
         for (int i=0; i<ship_length; i++){
-            board[(row+i)*10+col] = ship_char;
+            bottom_board[(row+i)*10+col] = ship_char;
         }
     }
 }
 
-//bot guess. Randomly guess a valid square. Input board containing guessed opponent squares (top board). Output int between 0-99
-int bot_guess(char board[]){
+//Simple bot guess. Randomly guess a valid square. Input board containing guessed opponent squares (top board). Output int between 0-99
+int bot_guess(const array<char,100>bot_board){
     bool valid = 0;
     int bot_guess = 0; //guess between 0-99
     
     while (valid == 0) {
         bot_guess = rand()%100; //chooses random square of 100 total
         //allows guess if the square hasnt been guessed before
-        if (board[bot_guess]=='.') {
+        if (bot_board[bot_guess]=='.') {
             valid = 1;
         }
     }
     return bot_guess;
 }
 
-int bot_guess_2(char bot_board[]) {
+//Advanced bot guess. Guesses along line of hits or randomly around a single hit. If none then guesses randomly. Input board with previous bot guesses. Output int between 0-99.
+int bot_guess_2(const array<char,100>bot_board) {
     bool pot_sunk = 0; //potentially sunk
     int guess = 0;
     int change = 1;
@@ -223,91 +228,12 @@ int bot_guess_2(char bot_board[]) {
         pot_sunk=0;
         guess++;
     }
-        /*
-        if ((guess%10==0 || bot_board[guess-1]=='.') && (bot_board[guess+1]=='.' || guess%10==9) && bot_board[guess-10]=='.' && bot_board[guess+10]=='.') {
-            random = rand()%4+1;
-            switch (random) {
-                case 1:
-                    if (guess%10!=0) {guess = guess-1;}
-                    else {guess = guess+1;}
-                    break;
-                case 2:
-                    if (guess%10!=9) {guess = guess+1;}
-                    else {guess = guess-1;}
-                    break;
-                case 3:
-                    if (guess>=10) {guess = guess-10;}
-                    else {guess = guess+10;}
-                    break;
-                case 4:
-                    if (guess<90) {guess = guess+10;}
-                    else {guess = guess-10;}
-                    break;
-            }
-            
-            
-        }
-            
-        
-        
-        if (bot_board[guess] == 'X') {
-            if (guess%10!=0 && bot_board[guess-1]=='.') {
-                guess--;
-                valid = 1;
-            }
-            else if (guess)
-        }
-        
-        if (bot_board[guess] == 'X') {
-            if (guess%10!=9 && bot_board[guess+1]=='.') {
-                guess++;
-                valid = 1;
-            }
-            else if (guess%10!=9 && bot_board[guess+1]=='X') {
-                change = 1;
-                while ((guess+change)%10!=9 && bot_board[guess+change+1]=='X') {
-                    change++;
-                }
-                if (bot_board[guess+change]=='.') {
-                    guess = guess+change;
-                    valid = 1;
-                }
-            }
-            else if (guess%10!=0 && bot_board[guess-1]=='.') {
-                guess--;
-                valid = 1;
-            }
-            else if (guess%10!=0 && bot_board[guess-1]=='X') {
-                change = 1;
-                while ((guess-change)%10!=0 && bot_board[guess-change-1]=='X') {
-                    change--;
-                }
-                if (bot_board[guess-change]=='.') {
-                    guess = guess-change;
-                    valid = 1;
-                }
-            }
-            
-             while ((guess+change)%10!=9 && (bot_board[guess+change+1]=='.' || bot_board[guess+change]=='X')) {
-             if (bot_board[guess+1]=='.') {
-             guess++;
-             valid = 1;
-             }
-             else {
-             change++;
-             }
-             }
-             */
-        
-    
-    //if (guess == 100) {
-    //    guess = bot_guess(bot_board);
-    //}
     guess = bot_guess(bot_board);
     return guess;
 }
 
-int bot_guess_3(char player_board[]) {
+//Cheating bot guess. Bot looks at player board and returns a guess where there is an unsunk ship.
+int bot_guess_3(const array<char,100>player_board) {
     bool valid = 0;
     int bot_guess = 0;
     
@@ -323,7 +249,7 @@ int bot_guess_3(char player_board[]) {
 }
 
 //Validates user guess. Input board with guesses user made (top board)
-int valid_guess(char board[]){
+int valid_guess(const array<char,100>board){
     bool valid = 0;
     string player_guess; //player input. letter A-J (not case sensitive) and number 1-10
     int guess_number = 0; //guess between 0-99
@@ -357,22 +283,21 @@ int valid_guess(char board[]){
 }
 
 //updates guess board (top) and ship board (bottom). Inputs: update board is board with guesses (top). reference board is opponent board with ships (bottom), guess is an int between 0-99
-//consider making more generic?
-void update_board(char update_board[], char reference_board[], int guess) {
-    if (reference_board[guess]=='.') {
+void update_board(array<char,100> &top_board, array<char,100> &bottom_board, const int guess) {
+    if (bottom_board[guess]=='.') {
         cout << "Miss." << endl; //display miss
-        update_board[guess] = 'O'; //change board (top) to miss
-        reference_board[guess] = 'O'; //change opponent board (bottom) to miss
+        top_board[guess] = 'O'; //change board (top) to miss
+        bottom_board[guess] = 'O'; //change opponent board (bottom) to miss
     }
     else {
         cout << "Hit!" << endl; //display hit
-        update_board[guess] = 'X'; //(change board (top) to hit
-        reference_board[guess] = 'X'; //change opponent board (bottom) to hit
+        top_board[guess] = 'X'; //(change board (top) to hit
+        bottom_board[guess] = 'X'; //change opponent board (bottom) to hit
     }
 }
 
 //User place ship. Checks and places a ship in a valid location based on user input. Ships will orient themselves down or to the right of coordinate indicated by user. Inputs: board containing ships (bottom). ship_length is length of ship being placed. ship_char is the character used to represent the ship type.
-void user_place_ship(char board[], int ship_length, char ship_char){
+void user_place_ship(array<char,100> &board, const int ship_length, const char ship_char){
     bool valid = 0;
     int col = 0;
     int row = 0;
@@ -383,7 +308,7 @@ void user_place_ship(char board[], int ship_length, char ship_char){
     while (valid == 0) {
         cout << "Choose orientation (h/v): ";
         cin >> direction;
-        //sets orientation to be first letter of user input. done to prevent issues if user inputs more than one character. Consider replacing char orientation with int orientation. And set int orientation to 1 or 0 depending on if first letter is h,H or v,V. Remove need for many or (||) checks. consider adding check if input is one letter
+        //sets orientation to be first letter of user input. done to prevent issues if user inputs more than one character.
         if (direction[0] == 'h' || direction[0] == 'H') {
             orientation = horizontal;
             valid = 1;
@@ -484,6 +409,7 @@ int main() {
         int guess = 0; //coordinate being guessed
         Difficulty mode = easy;
        
+        //ask user for difficulty level
         while (valid == 0) {
             cout << "Select difficulty (1. easy, 2. normal, 3. impossible): ";
             cin >> input;
@@ -509,18 +435,29 @@ int main() {
         //define ships here
         //make ship object with values of long name, short name, length, hits taken, methods of .issunk() if hits taken=length return 1 else return 0
         
+        //array of ship structures: long_name, ch_name, length, hits, sunk
+        array<Ship,5> ship_type = {{
+            {"Aircraft Carrier" , 'A', 5, 0, 0},
+            {"Battleship"       , 'B', 4, 0, 0},
+            {"Cruiser"          , 'C', 3, 0, 0},
+            {"Submarine"        , 'S', 3, 0, 0},
+            {"Patrol Boat"      , 'P', 2, 0, 0}
+        }};
+        
+        
         //boards
-        char board_1_top[100];  //player top board (contains guesses)
-        for (int i=0; i<100; i++){board_1_top[i]='.';} //initialize all to unknown '.'
+        //char board_1_top[100];  //player top board (contains guesses)
+        array<char, 100> board_1_top;
+        board_1_top.fill('.'); //initialize all to unknown '.'
         
-        char board_1_bottom[100]; //player bottom board (contains ships)
-        for (int i=0; i<100; i++){board_1_bottom[i]='.';}
+        array<char, 100> board_1_bottom; //player bottom board (contains ships)
+        board_1_bottom.fill('.');
         
-        char board_2_top[100];  //bot top board (contains guesses)
-        for (int i=0; i<100; i++){board_2_top[i]='.';}
+        array<char, 100> board_2_top;  //bot top board (contains guesses)
+        board_2_top.fill('.');
         
-        char board_2_bottom[100];   //bot bottom board (contains ships)
-        for (int i=0; i<100; i++){board_2_bottom[i]='.';}
+        array<char, 100> board_2_bottom;   //bot bottom board (contains ships)
+        board_2_bottom.fill('.');
         
         //set bot ship locations. 5 ships set randomly
         place_ship(board_2_bottom,5,'A');

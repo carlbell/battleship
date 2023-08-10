@@ -28,7 +28,6 @@ enum Orientation : unsigned char {horizontal = 0, vertical};
 
 enum Difficulty : unsigned char {easy = 0, normal, impossible};
 
-
 enum Ship_name : unsigned char {Carrier, Bship, Cruiser, Sub, PT};
 
 
@@ -61,7 +60,7 @@ void print_board(const array<char,100>board){
 
 /*Bot place ship. Function to randomly select a squares for the bot to place a ship. Inputs: board[] is an array of length 100 and is the board that ships will be placed on to. ship_length is the size of the ship between 2-5. ship_char is the character used to denote the ship being placed.
 */
-void place_ship(array<char,100> &bottom_board, const int ship_length, const char ship_char) {
+void bot_place_ship(array<char,100> &bottom_board, const Ship boat) {
     bool valid = 0; //is the potential position of the ship allowed
     int col = 0;
     int row = 0;
@@ -77,19 +76,19 @@ void place_ship(array<char,100> &bottom_board, const int ship_length, const char
         
         // if orientation is horizontal
         if (orientation == horizontal){
-            col = rand()%(11-ship_length); //randomly choose column where ship will not go off edge
+            col = rand()%(11-boat.length); //randomly choose column where ship will not go off edge
             row = rand()%10; //any row allowed
             //check that ship being placed doesnt overlap existing ship on board
-            for (int i=0; i<ship_length; i++){
+            for (int i=0; i<boat.length; i++){
                 if (bottom_board[row*10+col+i]!='.') {valid = 0;}
             }
         }
         // if orientation is vertical
         else {
             col = rand()%10; //any column allowed
-            row = rand()%(11-ship_length); //limits rows to prevent ship going off edge
+            row = rand()%(11-boat.length); //limits rows to prevent ship going off edge
             //check that ship being placed doesnt overlap existing ship on board
-            for (int i=0; i<ship_length; i++){
+            for (int i=0; i<boat.length; i++){
                 if (bottom_board[(row+i)*10+col]!='.') {valid = 0;}
             }
         }
@@ -97,13 +96,13 @@ void place_ship(array<char,100> &bottom_board, const int ship_length, const char
     
     //change board characters to add ship to board
     if (orientation == horizontal){
-        for (int i=0; i<ship_length; i++){
-            bottom_board[row*10+col+i] = ship_char;
+        for (int i=0; i<boat.length; i++){
+            bottom_board[row*10+col+i] = boat.ch_name;
         }
     }
     else {
-        for (int i=0; i<ship_length; i++){
-            bottom_board[(row+i)*10+col] = ship_char;
+        for (int i=0; i<boat.length; i++){
+            bottom_board[(row+i)*10+col] = boat.ch_name;
         }
     }
 }
@@ -284,6 +283,7 @@ int valid_guess(const array<char,100>board){
 
 //updates guess board (top) and ship board (bottom). Inputs: update board is board with guesses (top). reference board is opponent board with ships (bottom), guess is an int between 0-99
 void update_board(array<char,100> &top_board, array<char,100> &bottom_board, const int guess) {
+    
     if (bottom_board[guess]=='.') {
         cout << "Miss." << endl; //display miss
         top_board[guess] = 'O'; //change board (top) to miss
@@ -293,17 +293,20 @@ void update_board(array<char,100> &top_board, array<char,100> &bottom_board, con
         cout << "Hit!" << endl; //display hit
         top_board[guess] = 'X'; //(change board (top) to hit
         bottom_board[guess] = 'X'; //change opponent board (bottom) to hit
+        
     }
 }
 
 //User place ship. Checks and places a ship in a valid location based on user input. Ships will orient themselves down or to the right of coordinate indicated by user. Inputs: board containing ships (bottom). ship_length is length of ship being placed. ship_char is the character used to represent the ship type.
-void user_place_ship(array<char,100> &board, const int ship_length, const char ship_char){
+void user_place_ship(array<char,100> &board, const Ship boat){
     bool valid = 0;
     int col = 0;
     int row = 0;
     Orientation orientation = horizontal; //horizontal or vertical
     string direction; //takes user input
     string coords; //takes user input
+    
+    cout << "Place " << boat.long_name << ". Length: " << boat.length << ". Symbol: " << boat.ch_name << "\n";
     
     while (valid == 0) {
         cout << "Choose orientation (h/v): ";
@@ -342,12 +345,12 @@ void user_place_ship(array<char,100> &board, const int ship_length, const char s
             row = int(coords[1])-49;
             
             if (orientation == horizontal){
-                if (col > 10-ship_length) {
+                if (col > 10-boat.length) {
                     cout << "Invalid coordinates. Ship must fit on the board." << endl;
                     valid = 0;
                 }
                 else {
-                    for (int i=0; i<ship_length; i++){
+                    for (int i=0; i<boat.length; i++){
                         if (board[row*10+col+i]!='.') {valid = 0;}
                     }
                     if (valid == 0) {
@@ -356,12 +359,12 @@ void user_place_ship(array<char,100> &board, const int ship_length, const char s
                 }
             }
             else {
-                if (row > 10-ship_length) {
+                if (row > 10-boat.length) {
                     cout << "Invalid coordinates. Ship must fit on the board." << endl;
                     valid = 0;
                 }
                 else {
-                    for (int i=0; i<ship_length; i++){
+                    for (int i=0; i<boat.length; i++){
                         if (board[(row+i)*10+col]!='.') {valid = 0;}
                     }
                     if (valid == 0) {
@@ -373,13 +376,13 @@ void user_place_ship(array<char,100> &board, const int ship_length, const char s
     }
     //places ships on board
     if (orientation == horizontal){
-        for (int i=0; i<ship_length; i++){
-            board[row*10+col+i] = ship_char;
+        for (int i=0; i<boat.length; i++){
+            board[row*10+col+i] = boat.ch_name;
         }
     }
     else {
-        for (int i=0; i<ship_length; i++){
-            board[(row+i)*10+col] = ship_char;
+        for (int i=0; i<boat.length; i++){
+            board[(row+i)*10+col] = boat.ch_name;
         }
     }
 }
@@ -431,9 +434,10 @@ int main() {
         }
             
         
-        //int num_ships = 5;
         //define ships here
+        int num_ships = 5; //number of ships in play
         //make ship object with values of long name, short name, length, hits taken, methods of .issunk() if hits taken=length return 1 else return 0
+        array<Ship_name, 5> ships_play = {Carrier, Bship, Sub, Cruiser, PT}; //ships in play
         
         //array of ship structures: long_name, ch_name, length, hits, sunk
         array<Ship,5> ship_type = {{
@@ -460,45 +464,49 @@ int main() {
         board_2_bottom.fill('.');
         
         //set bot ship locations. 5 ships set randomly
-        place_ship(board_2_bottom,5,'A');
-        place_ship(board_2_bottom,4,'B');
-        place_ship(board_2_bottom,3,'S');
-        place_ship(board_2_bottom,3,'C');
-        place_ship(board_2_bottom,2,'P');
+        for (int i=0; i<num_ships; i++) {
+            bot_place_ship(board_2_bottom, ship_type[ships_play[i]]);
+        }
+        
         
         /*
+        bot_place_ship(board_2_bottom, ship_type[Carrier]);
+        bot_place_ship(board_2_bottom, ship_type[Bship]);
+        bot_place_ship(board_2_bottom, ship_type[Sub]);
+        bot_place_ship(board_2_bottom, ship_type[Cruiser]);
+        bot_place_ship(board_2_bottom, ship_type[PT]);
+        */
+         
+        /*
         //randomly set player ship locations
-        place_ship(board_1_bottom,5,'A');
-        place_ship(board_1_bottom,4,'B');
-        place_ship(board_1_bottom,3,'S');
-        place_ship(board_1_bottom,3,'C');
-        place_ship(board_1_bottom,2,'P');
+         bot_place_ship(board_1_bottom, ship_type[Carrier]);
+         bot_place_ship(board_1_bottom, ship_type[Bship]);
+         bot_place_ship(board_1_bottom, ship_type[Sub]);
+         bot_place_ship(board_1_bottom, ship_type[Cruiser]);
+         bot_place_ship(board_1_bottom, ship_type[PT]);
         */
         
         //allow player to set player ship locations
         print_board(board_1_bottom);
         cout << "Place your ships." << endl;
-        cout << "Place Aircraft Carrier. Length: 5. Symbol: A" << endl;
-        user_place_ship(board_1_bottom,5,'A');
-        print_board(board_1_bottom);
-        cout << "Place Battleship. Length: 4. Symbol: B" << endl;
-        user_place_ship(board_1_bottom,4,'B');
-        print_board(board_1_bottom);
-        cout << "Place Submarine. Length: 3. Symbol: S" << endl;
-        user_place_ship(board_1_bottom,3,'S');
-        print_board(board_1_bottom);
-        cout << "Place Cruiser. Length: 3. Symbol: C" << endl;
-        user_place_ship(board_1_bottom,3,'C');
-        print_board(board_1_bottom);
-        cout << "Place Patrol Boat. Length: 2. Symbol: P" << endl;
-        user_place_ship(board_1_bottom,2,'P');
+        for (int i=0; i<num_ships; i++) {
+            user_place_ship(board_1_bottom, ship_type[ships_play[i]]);
+            print_board(board_1_bottom);
+        }
+        
+        //calculate max number of hits for end game purposes
+        int max_hits = 0; //max number of hits
+        //sum of lengths of ships in play
+        for (int i=0; i<num_ships; i++) {
+            max_hits = max_hits+ship_type[ships_play[i]].length;
+        }
         
         //Begin game
         cout << "Begin!\n\n";
         
         //Game mechanism
         //play continues while max number of hits not achieved by either player or bot
-        while (player_hits<17 && computer_hits<17){
+        while (player_hits<max_hits && computer_hits<max_hits){
             //display top and bottom board to player
             print_board(board_1_top);
             cout << "-----------------------\n";
@@ -514,7 +522,7 @@ int main() {
             
             //Bot turn
             //bot only takes turn if has any remaining ships
-            if (player_hits<17) {
+            if (player_hits<max_hits) {
                 cout << "Computer turn: ";
                 switch (mode) {
                     case easy:
@@ -549,7 +557,7 @@ int main() {
         print_board(board_1_bottom);
         
         //display win/loss message
-        if (player_hits==17) {
+        if (player_hits==max_hits) {
             cout << "\nYOU WIN!\n\n";
         }
         else {
@@ -562,7 +570,13 @@ int main() {
         //ask user to play another round
         cout << "Another Round?\n" << "1. Yes\n" << "2. No\n";
         cin >> play;
+        
         valid = 0; //reset valid difficulty
+        //reset ship healths
+        for (int i=0; i<num_ships; i++) {
+            ship_type[ships_play[i]].hits = 0;
+            ship_type[ships_play[i]].sunk = 0;
+        }
     }
     cout << "OK. Goodbye!" << endl; //goodbye message
         

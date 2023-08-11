@@ -282,7 +282,9 @@ int valid_guess(const array<char,100>board){
 }
 
 //updates guess board (top) and ship board (bottom). Inputs: update board is board with guesses (top). reference board is opponent board with ships (bottom), guess is an int between 0-99
-void update_board(array<char,100> &top_board, array<char,100> &bottom_board, const int guess) {
+void update_board(array<char,100> &top_board, array<char,100> &bottom_board, const int guess, array<Ship,5> &ship_table) {
+    
+    int index = 0;
     
     if (bottom_board[guess]=='.') {
         cout << "Miss." << endl; //display miss
@@ -291,9 +293,17 @@ void update_board(array<char,100> &top_board, array<char,100> &bottom_board, con
     }
     else {
         cout << "Hit!" << endl; //display hit
+        for (int i=0; i<ship_table.size(); i++) {
+            if (ship_table[i].ch_name == bottom_board[guess]) {
+                ship_table[i].hits++;
+                if (ship_table[i].hits==ship_table[i].length) {
+                    cout << ship_table[i].long_name << " sunk!\n";
+                    ship_table[i].hits++;
+                }
+            }
+        }
         top_board[guess] = 'X'; //(change board (top) to hit
         bottom_board[guess] = 'X'; //change opponent board (bottom) to hit
-        
     }
 }
 
@@ -512,9 +522,13 @@ int main() {
             cout << "-----------------------\n";
             print_board(board_1_bottom);
             //player takes turn and makes guess
+            
+            //see bot board
+            print_board(board_2_bottom);
+            
             cout << "Your turn. ";
             guess = valid_guess(board_1_top); //input player guessed square
-            update_board(board_1_top, board_2_bottom, guess); //update board based on guess
+            update_board(board_1_top, board_2_bottom, guess, ship_type); //update board based on guess
             //add hit if player hit
             if (board_1_top[guess]=='X'){
                 player_hits++;
@@ -541,7 +555,7 @@ int main() {
                         break;
                 }
                 cout << guess << endl;
-                update_board(board_2_top, board_1_bottom, guess); //update boards
+                update_board(board_2_top, board_1_bottom, guess, ship_type); //update boards
                 //add hit if bot hit
                 if (board_2_top[guess]=='X'){
                     computer_hits++;

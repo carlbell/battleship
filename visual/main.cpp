@@ -26,7 +26,7 @@ int main() {
     SDL_Log("Failed to create renderer: %s", SDL_GetError());
     return 1;
   }
-  GameState* gameState = GameLogic_InitializeGameState();
+  GameLogic_GameState* gameState = GameLogic_InitializeGameState();
 
   bool quit = false;
   int x = UNINITIALIZED;
@@ -43,7 +43,8 @@ int main() {
       if (event.type == SDL_MOUSEBUTTONDOWN) {
         SDL_GetMouseState(&x, &y);
         std::cout << "click!" << std::endl;
-        GameLogic_processClick(gameState, x, y);
+        GameLogic_GameAction* gameAction = GameLogic_CreateGameAction(x, y);
+        GameLogic_processClick(gameState, gameAction);
       }
     }
     

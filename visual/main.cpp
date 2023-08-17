@@ -2,6 +2,7 @@
 #include <SDL2/SDL_ttf.h>
 
 #include <iostream>
+const int UNINITIALIZED = -1;
 
 int main() {
   if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -25,13 +26,24 @@ int main() {
     SDL_Log("Failed to create renderer: %s", SDL_GetError());
     return 1;
   }
+  GameState* gameState = GameLogic_InitializeGameState();
 
   bool quit = false;
+  int x = UNINITIALIZED;
+  int y = UNINITIALIZED;
+  std::string text = "";
   while (!quit) {
     SDL_Event event;
     while (SDL_PollEvent( & event)) {
       if (event.type == SDL_QUIT) {
        quit = true;
+      }
+      // if click: send to Game process click location
+      
+      if (event.type == SDL_MOUSEBUTTONDOWN) {
+        SDL_GetMouseState(&x, &y);
+        std::cout << "click!" << std::endl;
+        GameLogic_processClick(gameState, x, y);
       }
     }
     
@@ -42,7 +54,14 @@ int main() {
     TTF_Init();
     TTF_Font* font = TTF_OpenFont("res/COMIC.TTF", 40);
     SDL_Color textColor = { 255, 255, 255, 255 };
-    SDL_Surface* textSurface = TTF_RenderText_Solid(font, "We are playing battleship", textColor);
+    
+    // get text to be printed
+    text = GameLogic_getText(gameState);
+
+    SDL_Surface* textSurface = TTF_RenderText_Solid(font, text, textColor);
+  
+    //SDL_Surface* textSurface = TTF_RenderText_Solid(font, "We are playing battleship", textColor);
+
     SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
     int textWidth, textHeight;
     SDL_QueryTexture(textTexture, nullptr, nullptr, &textWidth, &textHeight);
@@ -51,7 +70,6 @@ int main() {
     SDL_FreeSurface(textSurface);
     SDL_DestroyTexture(textTexture);
     TTF_CloseFont(font);
-    
     SDL_RenderPresent(renderer);
   }
 

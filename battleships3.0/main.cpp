@@ -17,6 +17,7 @@
 #include <string>
 #include <array>
 #include "GameState.hpp"
+#include "Interface.hpp"
 
 using namespace std;
 

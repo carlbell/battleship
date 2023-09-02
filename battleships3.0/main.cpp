@@ -5,43 +5,55 @@
 //
 //  Battleship game! User can place ships and play against a bot. Bot has 3 difficulty levels.
 
-//consider fixing array for loops that add '.' with .fill('.') function
-//change c style array to std array
-//remove endls as endl clears buffer
-//add const to vars and functions
-
-
-//allows time delays
-#ifdef _WIN32
-#include <Windows.h>
-#else
-#include <unistd.h>
-#endif
+/* available functions:
+ game_set_difficulty -ip
+ game_start -ip
+ game_player_turn -ip
+ game_turn -complete
+ game_end -ip
+ */
 
 #include <iostream>
 #include <string>
 #include <array>
+#include "GameState.hpp"
 
 using namespace std;
 
 enum Orientation : unsigned char {horizontal = 0, vertical};
 
-enum Difficulty : unsigned char {easy = 0, normal, impossible};
+enum Difficulty : unsigned char {easy, normal, impossible};
 
 enum Ship_name : unsigned char {Carrier, Bship, Cruiser, Sub, PT};
 
 
-//ship structure to store ship type info
-struct Ship {
-    string long_name;
-    char ch_name;
-    int length;
-    int hits;
-    bool sunk;
-};
-
-
 //Function to print the board. Input is an array with 100 elements containing the board state.
+
+
+string print_board(const array<char,100>board){
+    string print;
+    print += "   A B C D E F G H I J\n";
+    for (int i=0; i<9; i++){
+        print += " ";
+        print += to_string(i+1);
+        print += " ";
+        for (int j=0; j<10; j++){
+            print += board[j+10*i];
+            print += " ";
+        }
+        print += "\n";
+    }
+    print += "10 ";
+    for (int i=0; i<10; i++){
+        print += board[90+i];
+        print += " ";
+    }
+    print += "\n";
+    return print;
+}
+
+/*
+
 void print_board(const array<char,100>board){
     cout << "   A B C D E F G H I J\n";
     for (int i=0; i<9; i++){
@@ -57,6 +69,7 @@ void print_board(const array<char,100>board){
     }
     cout <<"\n";
 }
+ */
 
 /*Bot place ship. Function to randomly select a squares for the bot to place a ship. Inputs: board[] is an array of length 100 and is the board that ships will be placed on to. ship_length is the size of the ship between 2-5. ship_char is the character used to denote the ship being placed.
 */
@@ -282,22 +295,22 @@ int valid_guess(const array<char,100>board){
 }
 
 //updates guess board (top) and ship board (bottom). Inputs: update board is board with guesses (top). reference board is opponent board with ships (bottom), guess is an int between 0-99
-void update_board(array<char,100> &top_board, array<char,100> &bottom_board, const int guess, array<Ship,5> &ship_table) {
-    
-    int index = 0;
+string update_board(array<char,100> &top_board, array<char,100> &bottom_board, const int guess, array<Ship,5> &ship_table) {
+    string print;
     
     if (bottom_board[guess]=='.') {
-        cout << "Miss." << endl; //display miss
+        print += "Miss.\n"; //display miss
         top_board[guess] = 'O'; //change board (top) to miss
         bottom_board[guess] = 'O'; //change opponent board (bottom) to miss
     }
     else {
-        cout << "Hit!" << endl; //display hit
+        print += "Hit!\n"; //display hit
         for (int i=0; i<ship_table.size(); i++) {
             if (ship_table[i].ch_name == bottom_board[guess]) {
                 ship_table[i].hits++;
                 if (ship_table[i].hits==ship_table[i].length) {
-                    cout << ship_table[i].long_name << " sunk!\n";
+                    print += ship_table[i].long_name;
+                    print += " sunk!\n";
                     ship_table[i].hits++;
                 }
             }
@@ -305,6 +318,7 @@ void update_board(array<char,100> &top_board, array<char,100> &bottom_board, con
         top_board[guess] = 'X'; //(change board (top) to hit
         bottom_board[guess] = 'X'; //change opponent board (bottom) to hit
     }
+    return print;
 }
 
 //User place ship. Checks and places a ship in a valid location based on user input. Ships will orient themselves down or to the right of coordinate indicated by user. Inputs: board containing ships (bottom). ship_length is length of ship being placed. ship_char is the character used to represent the ship type.
@@ -397,10 +411,146 @@ void user_place_ship(array<char,100> &board, const Ship boat){
     }
 }
 
+string set_difficulty (Game &game_state) {
+    bool valid = 0;
+    string print;
+    char input;
+    
+    while (valid == 0) {
+        cout << "Select difficulty (1. easy, 2. normal, 3. impossible): ";
+        cin >> input;
+        if (input == '1') {
+            game_state.difficuly = 1;
+            valid = 1;
+        }
+        else if (input == '2') {
+            game_state.difficuly = 2;
+            valid = 1;
+        }
+        else if (input == '3') {
+            game_state.difficuly = 3;
+            valid = 1;
+        }
+        else {
+            cout << "Invalid difficulty." << endl;
+        }
+        cin.ignore();
+    }
+    return print;
+}
+
+//for web use
+void bot_place_ships_u(Game &game_state) {
+    for (int i=0; i<5; i++) {
+        bot_place_ship(game_state.board_2_bottom, game_state.ship_type[i]);
+    }
+}
+
+//for web use
+//update when cin works
+void user_place_ships_u(Game &game_state) {
+    for (int i=0; i<5; i++) {
+        bot_place_ship(game_state.board_1_bottom, game_state.ship_type[i]);
+    }
+}
+
+string bot_guess_u(Game &game_state) {
+    string print;
+    int guess = 0;
+    //Bot turn
+    //bot only takes turn if has any remaining ships
+    if (game_state.player_hits<game_state.max_hits) {
+        print += "Computer turn: ";
+        switch (game_state.difficuly) {
+            case 1:
+                guess = bot_guess(game_state.board_2_top);
+                break;
+            case 2:
+                guess = bot_guess_2(game_state.board_2_top);
+                break;
+            case 3:
+                if (game_state.player_hits>13 && rand()%2==0) {
+                    guess = bot_guess_3(game_state.board_1_bottom);
+                }
+                else {
+                    guess = bot_guess_2(game_state.board_2_top);
+                }
+                break;
+        }
+        print += to_string(guess); //adds ascii number to letter to string
+        print += "\n";
+        print += update_board(game_state.board_2_top, game_state.board_1_bottom, guess, game_state.ship_type); //update boards
+        //add hit if bot hit
+        if (game_state.board_2_top[guess]=='X'){
+            game_state.computer_hits++;
+        }
+    }
+    return print;
+}
+
+string player_guess_u(Game &game_state) {
+    string print;
+    int guess = 0;
+    
+    //display top and bottom board to player
+    print += print_board(game_state.board_1_top);
+    print += "-----------------------\n";
+    print += print_board(game_state.board_1_bottom);
+    //player takes turn and makes guess
+
+    print += "Your turn. ";
+    
+    //temp bot guess for player
+    guess = bot_guess_2(game_state.board_1_top);
+
+    print += to_string(guess);
+    /* implement player guessing system when cin works
+    guess = valid_guess(game_state.board_1_top); //input player guessed square
+     */
+     
+    print += update_board(game_state.board_1_top, game_state.board_2_bottom, guess, game_state.ship_type); //update board based on guess
+    
+    //add hit if player hit
+    if (game_state.board_1_top[guess]=='X'){
+        game_state.player_hits++;
+    }
+    
+    return print;
+}
+
+string end_game(Game &game_state) {
+    string print;
+    //display player boards at end of game
+    print += print_board(game_state.board_1_top);
+    print += "-----------------------\n";
+    print += print_board(game_state.board_1_bottom);
+    
+    //display win/loss message
+    if (game_state.player_hits==game_state.max_hits) {
+        print += "\nYOU WIN!\n\n";
+    }
+    else {
+        print += "Enemy Ships: \n";
+        print += print_board(game_state.board_2_bottom); //show location of bot ships if player lost
+        print += "\nYou Lost.\n\n";
+        
+    }
+    
+    return print;
+}
+
+string turn() {
+    string print;
+    print += "turn taken/n";
+    return print;
+}
+
+
+
 //consider making a function to validate coordinates are A-J and 1-10 format. will reduce some repetition
 
 int main() {
-    
+        
     int play = 0; //does user want to keep playing
     string input;
     bool valid = 0;
@@ -408,6 +558,18 @@ int main() {
     //ask user if ready to play
     cout << "Ready to Play Sinky-Ships?\n" << "1. Yes\n" << "2. No" << endl;
     cin >> play;
+    
+    Game game_state_1;
+    
+    
+    bot_place_ships_u(game_state_1);
+    user_place_ships_u(game_state_1);
+    for (int i=0; i<18; i++) {
+        cout << player_guess_u(game_state_1);
+        cout << bot_guess_u(game_state_1);
+    }
+    
+    
     
     while (play == 1){
         
@@ -478,15 +640,9 @@ int main() {
             bot_place_ship(board_2_bottom, ship_type[ships_play[i]]);
         }
         
+        cout << print_board(board_1_bottom);
+
         
-        /*
-        bot_place_ship(board_2_bottom, ship_type[Carrier]);
-        bot_place_ship(board_2_bottom, ship_type[Bship]);
-        bot_place_ship(board_2_bottom, ship_type[Sub]);
-        bot_place_ship(board_2_bottom, ship_type[Cruiser]);
-        bot_place_ship(board_2_bottom, ship_type[PT]);
-        */
-         
         /*
         //randomly set player ship locations
          bot_place_ship(board_1_bottom, ship_type[Carrier]);
@@ -497,11 +653,11 @@ int main() {
         */
         
         //allow player to set player ship locations
-        print_board(board_1_bottom);
+        cout << print_board(board_1_bottom);
         cout << "Place your ships." << endl;
         for (int i=0; i<num_ships; i++) {
             user_place_ship(board_1_bottom, ship_type[ships_play[i]]);
-            print_board(board_1_bottom);
+            cout << print_board(board_1_bottom);
         }
         
         //calculate max number of hits for end game purposes
@@ -518,17 +674,17 @@ int main() {
         //play continues while max number of hits not achieved by either player or bot
         while (player_hits<max_hits && computer_hits<max_hits){
             //display top and bottom board to player
-            print_board(board_1_top);
+            cout << print_board(board_1_top);
             cout << "-----------------------\n";
-            print_board(board_1_bottom);
+            cout << print_board(board_1_bottom);
             //player takes turn and makes guess
             
             //see bot board
-            print_board(board_2_bottom);
+            //cout << print_board(board_2_bottom);
             
             cout << "Your turn. ";
             guess = valid_guess(board_1_top); //input player guessed square
-            update_board(board_1_top, board_2_bottom, guess, ship_type); //update board based on guess
+            cout << update_board(board_1_top, board_2_bottom, guess, ship_type); //update board based on guess
             //add hit if player hit
             if (board_1_top[guess]=='X'){
                 player_hits++;
@@ -555,20 +711,19 @@ int main() {
                         break;
                 }
                 cout << guess << endl;
-                update_board(board_2_top, board_1_bottom, guess, ship_type); //update boards
+                cout << update_board(board_2_top, board_1_bottom, guess, ship_type); //update boards
                 //add hit if bot hit
                 if (board_2_top[guess]=='X'){
                     computer_hits++;
                 }
-                sleep(1); //wait before displaying new board state
             }
             
         }
         
         //display player boards at end of game
-        print_board(board_1_top);
+        cout << print_board(board_1_top);
         cout << "-----------------------\n";
-        print_board(board_1_bottom);
+        cout << print_board(board_1_bottom);
         
         //display win/loss message
         if (player_hits==max_hits) {
@@ -576,7 +731,7 @@ int main() {
         }
         else {
             cout << "Enemy Ships:" << endl;
-            print_board(board_2_bottom); //show location of bot ships if player lost
+            cout << print_board(board_2_bottom); //show location of bot ships if player lost
             cout << "\nYou Lost.\n" << endl;
             
         }

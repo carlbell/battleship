@@ -1,5 +1,6 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#include "../battleships3.0/GameState.hpp"
 
 #include <iostream>
 const int UNINITIALIZED = -1;

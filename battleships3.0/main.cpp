@@ -3,7 +3,7 @@
 //
 //  Created by Bennet Lum on 8/5/23.
 //
-//  Battleship game! User can place ships and play against a bot. Bot has 3 difficulty levels.
+//  Battleship game! player can place ships and play against a bot. Bot has 3 difficulty levels.
 
 /* available functions:
  game_set_difficulty -ip
@@ -260,7 +260,7 @@ int bot_guess_3(const array<char,100>player_board) {
     return bot_guess;
 }
 
-//Validates user guess. Input board with guesses user made (top board)
+//Validates player guess. Input board with guesses player made (top board)
 int valid_guess(const array<char,100>board){
     bool valid = 0;
     string player_guess; //player input. letter A-J (not case sensitive) and number 1-10
@@ -268,7 +268,7 @@ int valid_guess(const array<char,100>board){
    
     while (valid == 0){
         cout << "Guess: ";
-        cin >> player_guess; //user input
+        cin >> player_guess; //player input
         //if guess contains number 10, change 10 to ':' since it is ASCII character after 9. Allows subtraction later.
         if (player_guess.length()==3 && player_guess[1]=='1' && player_guess[2]=='0') {
             player_guess.pop_back();
@@ -321,21 +321,21 @@ string update_board(array<char,100> &top_board, array<char,100> &bottom_board, c
     return print;
 }
 
-//User place ship. Checks and places a ship in a valid location based on user input. Ships will orient themselves down or to the right of coordinate indicated by user. Inputs: board containing ships (bottom). ship_length is length of ship being placed. ship_char is the character used to represent the ship type.
-void user_place_ship(array<char,100> &board, const Ship boat){
+//player place ship. Checks and places a ship in a valid location based on player input. Ships will orient themselves down or to the right of coordinate indicated by player. Inputs: board containing ships (bottom). ship_length is length of ship being placed. ship_char is the character used to represent the ship type.
+void player_place_ship(array<char,100> &board, const Ship boat){
     bool valid = 0;
     int col = 0;
     int row = 0;
     Orientation orientation = horizontal; //horizontal or vertical
-    string direction; //takes user input
-    string coords; //takes user input
+    string direction; //takes player input
+    string coords; //takes player input
     
     cout << "Place " << boat.long_name << ". Length: " << boat.length << ". Symbol: " << boat.ch_name << "\n";
     
     while (valid == 0) {
         cout << "Choose orientation (h/v): ";
         cin >> direction;
-        //sets orientation to be first letter of user input. done to prevent issues if user inputs more than one character.
+        //sets orientation to be first letter of player input. done to prevent issues if player inputs more than one character.
         if (direction[0] == 'h' || direction[0] == 'H') {
             orientation = horizontal;
             valid = 1;
@@ -448,7 +448,7 @@ void bot_place_ships_u(Game &game_state) {
 
 //for web use
 //update when cin works
-void user_place_ships_u(Game &game_state) {
+void player_place_ships_u(Game &game_state) {
     for (int i=0; i<5; i++) {
         bot_place_ship(game_state.board_1_bottom, game_state.ship_type[i]);
     }
@@ -554,17 +554,17 @@ int main() {
     
     
     bot_place_ships_u(game_state_1);
-    user_place_ships_u(game_state_1);
+    player_place_ships_u(game_state_1);
     for (int i=0; i<18; i++) {
         cout << player_guess_u(game_state_1);
         cout << bot_guess_u(game_state_1);
     }
     return 0;  
-    // int play = 0; //does user want to keep playing
+    // int play = 0; //does player want to keep playing
     // string input;
     // bool valid = 0;
     
-    // //ask user if ready to play
+    // //ask player if ready to play
     // cout << "Ready to Play Sinky-Ships?\n" << "1. Yes\n" << "2. No" << endl;
     // cin >> play;
     
@@ -572,7 +572,7 @@ int main() {
     
     
     // bot_place_ships_u(game_state_1);
-    // user_place_ships_u(game_state_1);
+    // player_place_ships_u(game_state_1);
     // for (int i=0; i<18; i++) {
     //     cout << player_guess_u(game_state_1);
     //     cout << bot_guess_u(game_state_1);
@@ -593,7 +593,7 @@ int main() {
     //     int guess = 0; //coordinate being guessed
     //     Difficulty mode = easy;
        
-    //     //ask user for difficulty level
+    //     //ask player for difficulty level
     //     while (valid == 0) {
     //         cout << "Select difficulty (1. easy, 2. normal, 3. impossible): ";
     //         cin >> input;
@@ -665,7 +665,7 @@ int main() {
     //     cout << print_board(board_1_bottom);
     //     cout << "Place your ships." << endl;
     //     for (int i=0; i<num_ships; i++) {
-    //         user_place_ship(board_1_bottom, ship_type[ships_play[i]]);
+    //         player_place_ship(board_1_bottom, ship_type[ships_play[i]]);
     //         cout << print_board(board_1_bottom);
     //     }
         
@@ -745,7 +745,7 @@ int main() {
             
     //     }
         
-    //     //ask user to play another round
+    //     //ask player to play another round
     //     cout << "Another Round?\n" << "1. Yes\n" << "2. No\n";
     //     cin >> play;
         

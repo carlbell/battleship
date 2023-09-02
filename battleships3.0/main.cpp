@@ -412,7 +412,8 @@ void player_place_ship(array<char,100> &board, const Ship boat){
     }
 }
 
-string set_difficulty (Game &game_state) {
+Output set_difficulty_u (Game &game_state, int difficulty) {
+    Output answer;
     bool valid = 0;
     string print;
     char input;
@@ -437,7 +438,7 @@ string set_difficulty (Game &game_state) {
         }
         cin.ignore();
     }
-    return print;
+    return answer;
 }
 
 //for web use
@@ -540,11 +541,6 @@ string end_game(Game &game_state) {
     return print;
 }
 
-string turn() {
-    string print;
-    print += "turn taken/n";
-    return print;
-}
 
 
 

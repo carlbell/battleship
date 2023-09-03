@@ -41,8 +41,9 @@ class Game {
         //game trackers
         int difficuly;  //difficulty level
         int player_hits = 0; //number of hits player made
-        int computer_hits = 0; //number of hits bot made
+        int bot_hits = 0; //number of hits bot made
         int max_hits = 17;
+        int turn_no = 0;
     
         //table of ships
         array<Ship,5> ship_type = {{

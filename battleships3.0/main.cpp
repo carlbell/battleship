@@ -412,32 +412,37 @@ void player_place_ship(array<char,100> &board, const Ship boat){
     }
 }
 
-Output set_difficulty_u (Game &game_state, int difficulty) {
+
+//for web use
+Output set_difficulty_u (Game &game_state, int difficulty = 0) {
     Output answer;
-    bool valid = 0;
-    string print;
-    char input;
     
-    while (valid == 0) {
-        cout << "Select difficulty (1. easy, 2. normal, 3. impossible): ";
-        cin >> input;
-        if (input == '1') {
+    switch (difficulty) {
+        case 0:
+            answer.print += "Select difficulty (1. easy, 2. normal, 3. impossible): ";
+            answer.check = Invalid;
+            break;
+        case 1:
             game_state.difficuly = 1;
-            valid = 1;
-        }
-        else if (input == '2') {
+            answer.print += "Easy Mode\n";
+            answer.check = Valid;
+            break;
+        case 2:
             game_state.difficuly = 2;
-            valid = 1;
-        }
-        else if (input == '3') {
+            answer.print += "Normal Mode\n";
+            answer.check = Valid;
+            break;
+        case 3:
             game_state.difficuly = 3;
-            valid = 1;
-        }
-        else {
-            cout << "Invalid difficulty." << endl;
-        }
-        cin.ignore();
+            answer.print += "Impossible Mode\n";
+            answer.check = Valid;
+            break;
+        default:
+            answer.print += "Invalid difficulty.\nSelect difficulty (1. easy, 2. normal, 3. impossible): ";
+            answer.check = Invalid;
+            break;
     }
+
     return answer;
 }
 
@@ -484,7 +489,7 @@ string bot_guess_u(Game &game_state) {
         print += update_board(game_state.board_2_top, game_state.board_1_bottom, guess, game_state.ship_type); //update boards
         //add hit if bot hit
         if (game_state.board_2_top[guess]=='X'){
-            game_state.computer_hits++;
+            game_state.bot_hits++;
         }
     }
     return print;
@@ -520,25 +525,33 @@ string player_guess_u(Game &game_state) {
     return print;
 }
 
-string end_game(Game &game_state) {
-    string print;
-    //display player boards at end of game
-    print += print_board(game_state.board_1_top);
-    print += "-----------------------\n";
-    print += print_board(game_state.board_1_bottom);
+Output end_game_u(Game &game_state) {
+    Output answer;
     
-    //display win/loss message
-    if (game_state.player_hits==game_state.max_hits) {
-        print += "\nYOU WIN!\n\n";
+    if (game_state.player_hits < game_state.max_hits && game_state.bot_hits < game_state.max_hits) {
+        answer.print += "Next Turn:\n";
+        answer.check = Invalid;
     }
     else {
-        print += "Enemy Ships: \n";
-        print += print_board(game_state.board_2_bottom); //show location of bot ships if player lost
-        print += "\nYou Lost.\n\n";
+        //display player boards at end of game
+        answer.print += print_board(game_state.board_1_top);
+        answer.print += "-----------------------\n";
+        answer.print += print_board(game_state.board_1_bottom);
         
+        answer.check = Valid;
+        
+        //display win/loss message
+        if (game_state.player_hits==game_state.max_hits) {
+            answer.print += "\nYOU WIN!\n\n";
+        }
+        else {
+            answer.print += "Enemy Ships:\n";
+            answer.print += print_board(game_state.board_2_bottom); //show location of bot ships if player lost
+            answer.print += "\nYou Lost.\n\n";
+            
+        }
     }
-    
-    return print;
+    return answer;
 }
 
 
@@ -549,14 +562,27 @@ string end_game(Game &game_state) {
 int main() {
     Game game_state_1;
     
+    cout << set_difficulty_u(game_state_1).print;    //test default
+    cout << set_difficulty_u (game_state_1, 4).print; //test invalid
+    cout << set_difficulty_u(game_state_1, 1).print;  //test valid
     
-    bot_place_ships_u(game_state_1);
-    player_place_ships_u(game_state_1);
+    bot_place_ships_u(game_state_1);    //place bot ships
+    player_place_ships_u(game_state_1); //place player ships
+
+    //17 round game
+    /*
     for (int i=0; i<18; i++) {
         cout << player_guess_u(game_state_1);
         cout << bot_guess_u(game_state_1);
     }
-    return 0;  
+    */
+    while (end_game_u(game_state_1).check == Invalid) {
+        cout << player_guess_u(game_state_1);
+        cout << bot_guess_u(game_state_1);
+        cout <<end_game_u(game_state_1).print;
+    }
+    
+    return 0;
     // int play = 0; //does player want to keep playing
     // string input;
     // bool valid = 0;
@@ -586,7 +612,7 @@ int main() {
         
     //     //variables for game
     //     int player_hits = 0; //number of hits player made
-    //     int computer_hits = 0; //number of hits bot made
+    //     int bot_hits = 0; //number of hits bot made
     //     int guess = 0; //coordinate being guessed
     //     Difficulty mode = easy;
        
@@ -678,7 +704,7 @@ int main() {
         
     //     //Game mechanism
     //     //play continues while max number of hits not achieved by either player or bot
-    //     while (player_hits<max_hits && computer_hits<max_hits){
+    //     while (player_hits<max_hits && bot_hits<max_hits){
     //         //display top and bottom board to player
     //         cout << print_board(board_1_top);
     //         cout << "-----------------------\n";
@@ -720,7 +746,7 @@ int main() {
     //             cout << update_board(board_2_top, board_1_bottom, guess, ship_type); //update boards
     //             //add hit if bot hit
     //             if (board_2_top[guess]=='X'){
-    //                 computer_hits++;
+    //                 bot_hits++;
     //             }
     //         }
             

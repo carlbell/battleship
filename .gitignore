@@ -1,3 +1,5 @@
 battleships3.0.xcodeproj/
 .DS_Store
 .vscode/
+battleships3.0/out/
+visual/out/

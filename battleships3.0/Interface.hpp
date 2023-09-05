@@ -24,6 +24,21 @@
 // Returns:
 //   string
 
+// set_difficulty_u
+// Parameters:
+//   GameState, difficulty(optional)
+// Returns:
+//   Output
+
+// end_game_u
+// Parameters:
+//   GameState
+// Returns:
+//   Output
+//   (returns valid if game is over)
+
+
+
 #ifndef Interface_hpp
 #define Interface_hpp
 
@@ -39,7 +54,7 @@ enum Allow : unsigned char {Valid = 0, Invalid};
 // Structs below here:
 struct Output {
     string print;
-    Allow Validity;
+    Allow check;
 };
 
 

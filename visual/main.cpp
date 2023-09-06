@@ -102,15 +102,18 @@ int main() {
     const char* to_print = text.c_str();
     SDL_Surface* textSurface = TTF_RenderText_Solid(font, to_print, textColor);
   
-    //SDL_Surface* textSurface = TTF_RenderText_Solid(font, "We are playing battleship", textColor);
-
     SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
     int textWidth, textHeight;
     SDL_QueryTexture(textTexture, nullptr, nullptr, &textWidth, &textHeight);
+
+    // the below should be farmed out to a function that will do the formatting
+    
     SDL_Rect textRect = { (680 - textWidth) / 2, (480 - textHeight) / 2, textWidth, textHeight };
     SDL_RenderCopy(renderer, textTexture, nullptr, &textRect);
     SDL_FreeSurface(textSurface);
     SDL_DestroyTexture(textTexture);
+
+
     TTF_CloseFont(font);
     SDL_RenderPresent(renderer);
   }

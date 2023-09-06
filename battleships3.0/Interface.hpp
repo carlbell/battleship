@@ -8,15 +8,27 @@
 
 // player_place_ships_u
 // Parameters:
-//   GameState
+//   GameState, char direction, struct coord (contains int row, int col)
 //  Returns:
-//   string
+//   Output (change enum to int, 0 is all valid, 1 is 1st parameter invalid ...)
+
+// player_place_ships_check_u
+// Parameters:
+//   GameState, char direction, struct coord (contains int row, int col)
+//  Returns:
+//   int
 
 // player_guess_u
 // Parameters:
-//   GameState
+//   GameState, int x coord, int y coord
 // Returns:
-//   string
+//   Output
+
+// player_guess_check_u
+// Parameters:
+//   GameState, char direction, struct coord (contains int row, int col)
+//  Returns:
+//   int
 
 // bot_guess_u
 // Parameters:
@@ -26,7 +38,7 @@
 
 // set_difficulty_u
 // Parameters:
-//   GameState, difficulty(optional)
+//   GameState, int difficulty(optional)
 // Returns:
 //   Output
 

@@ -1,6 +1,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include "../battleships3.0/GameState.hpp"
+#include "../battleships3.0/Interface.hpp"
 
 #include <iostream>
 const int UNINITIALIZED = -1;
@@ -27,12 +28,14 @@ int main() {
     SDL_Log("Failed to create renderer: %s", SDL_GetError());
     return 1;
   }
-  GameLogic_GameState* gameState = GameLogic_InitializeGameState();
+
+  Game game_state;
+  int counter = 0;
 
   bool quit = false;
   int x = UNINITIALIZED;
   int y = UNINITIALIZED;
-  std::string text = "";
+  string text = "Loading...";
   while (!quit) {
     SDL_Event event;
     while (SDL_PollEvent( & event)) {
@@ -44,8 +47,48 @@ int main() {
       if (event.type == SDL_MOUSEBUTTONDOWN) {
         SDL_GetMouseState(&x, &y);
         std::cout << "click!" << std::endl;
-        GameLogic_GameAction* gameAction = GameLogic_CreateGameAction(x, y);
-        GameLogic_processClick(gameState, gameAction);
+        switch (counter) {
+          case 0:
+            text = set_difficulty_u(game_state).print;
+            counter++;
+            break;
+          case 1:
+            text = set_difficulty_u(game_state, 2).print;
+            counter++;
+            break;
+          case 2:
+            text = set_difficulty_u(game_state, 3).print;
+            counter++;
+            break;
+          case 3:
+            bot_place_ships_u(game_state);
+            text = "Bot placed ships";
+            counter++;
+            break;
+          case 4:
+            player_place_ships_u(game_state);
+            text = "Player placed ships";
+            counter++;
+            break;
+          case 5:
+            text = player_guess_u(game_state);
+            counter++;
+            break;
+          case 6:
+            text = bot_guess_u(game_state);
+            counter++;
+            break;
+          case 7:
+            Output result = end_game_u(game_state);
+            text = result.print;
+            if (result.check == Invalid) {
+              counter = 5;
+            }
+            else {
+              counter = 0;
+            }
+            break;
+        }
       }
     }
     
@@ -56,11 +99,8 @@ int main() {
     TTF_Init();
     TTF_Font* font = TTF_OpenFont("res/COMIC.TTF", 40);
     SDL_Color textColor = { 255, 255, 255, 255 };
-    
-    // get text to be printed
-    text = GameLogic_getText(gameState);
-
-    SDL_Surface* textSurface = TTF_RenderText_Solid(font, text, textColor);
+    const char* to_print = text.c_str();
+    SDL_Surface* textSurface = TTF_RenderText_Solid(font, to_print, textColor);
   
     //SDL_Surface* textSurface = TTF_RenderText_Solid(font, "We are playing battleship", textColor);
 

@@ -27,12 +27,75 @@ using namespace std;
 int main() {
     Game game_state_1;
     
+    
     cout << set_difficulty_u(game_state_1).print;    //test default
     cout << set_difficulty_u (game_state_1, 4).print; //test invalid
     cout << set_difficulty_u(game_state_1, 1).print;  //test valid
     
     bot_place_ships_u(game_state_1);    //place bot ships
-    player_place_ships_u(game_state_1); //place player ships
+    
+    //test cases
+    //cout << player_place_ships_check_u(game_state_1).print;
+    //cout << player_place_ships_check_u(game_state_1, horizontal , {0,0}, PT).print;
+    //cout << player_place_ships_check_u(game_state_1, horizontal , {0,9}, PT).print;
+    //game_state_1.board_1_bottom[0] = 'A';
+    //cout << player_place_ships_check_u(game_state_1, horizontal , {0,0}, PT).print;
+    //return 0;
+    //player_place_ships_u(game_state_1, horizontal , {5,0}, PT);
+    //cout << print_board(game_state_1.board_1_bottom);
+    //return 0;}
+    
+    //place carrier
+    cout << player_place_ships_check_u(game_state_1, Carrier).print;
+    while (player_place_ships_check_u(game_state_1, Carrier, horizontal, {0,0}).check != Valid) {
+        player_place_ships_check_u(game_state_1, Carrier, horizontal, {0,0}); //cin new player value
+    }
+    player_place_ships_u(game_state_1, Carrier, horizontal, {0,0});
+    
+    //place bship
+    cout << player_place_ships_check_u(game_state_1, Bship).print;
+    while (player_place_ships_check_u(game_state_1, Bship, horizontal, {1,0}).check != Valid) {
+        player_place_ships_check_u(game_state_1, Bship, horizontal, {1,0}); //cin new player value
+    }
+    player_place_ships_u(game_state_1, Bship, horizontal, {1,0});
+    
+    //place sub
+    cout << player_place_ships_check_u(game_state_1, Sub).print;
+    while (player_place_ships_check_u(game_state_1, Sub, horizontal, {2,0}).check != Valid) {
+        player_place_ships_check_u(game_state_1, Sub, horizontal, {2,0}); //cin new player value
+    }
+    player_place_ships_u(game_state_1, Sub, horizontal, {2,0});
+    
+    //place cruiser
+    cout << player_place_ships_check_u(game_state_1, Cruiser).print;
+    while (player_place_ships_check_u(game_state_1, Cruiser, horizontal, {3,0}).check != Valid) {
+        player_place_ships_check_u(game_state_1, Cruiser, horizontal, {3,0}); //cin new player value
+    }
+    player_place_ships_u(game_state_1, Cruiser, horizontal, {3,0});
+    
+    //place PT
+    cout << player_place_ships_check_u(game_state_1, PT).print;
+    while (player_place_ships_check_u(game_state_1, PT, horizontal, {4,0}).check != Valid) {
+        player_place_ships_check_u(game_state_1, PT, horizontal, {4,0}); //cin new player value
+    }
+    player_place_ships_u(game_state_1, PT, horizontal, {4,0});
+    
+    
+    cout << player_guess_check_u(game_state_1).print;
+    while (player_guess_check_u(game_state_1, {0,0}).check != Valid) {
+        player_guess_check_u(game_state_1, {0,0});
+    }
+    game_state_1.board_1_top[0] = 'O';
+    cout << player_guess_u(game_state_1, {0,0});
+
+    cout << bot_guess_u(game_state_1);
+
+    
+                return 0;} /*
+
+    
+    
+    //player_place_ships_u(game_state_1); //place player ships
     
     //17 round game
     /*
@@ -40,7 +103,7 @@ int main() {
      cout << player_guess_u(game_state_1);
      cout << bot_guess_u(game_state_1);
      }
-     */
+     
     while (end_game_u(game_state_1).check == Invalid) {
         cout << player_guess_u(game_state_1);
         cout << bot_guess_u(game_state_1);

@@ -1,34 +1,35 @@
 // Functions:
+
+
 // bot_place_ships_u
 // Parameters:
 //   GameState
 // Returns:
-//   string
-//
-
-// player_place_ships_u
-// Parameters:
-//   GameState, char direction, struct coord (contains int row, int col)
-//  Returns:
-//   Output (change enum to int, 0 is all valid, 1 is 1st parameter invalid ...)
+//   void
 
 // player_place_ships_check_u
 // Parameters:
-//   GameState, char direction, struct coord (contains int row, int col)
+//   GameState, Ship_name ship, Orientation direction, struct coord (contains int row, int col)
 //  Returns:
-//   int
-
-// player_guess_u
-// Parameters:
-//   GameState, int x coord, int y coord
-// Returns:
 //   Output
+
+// player_place_ships_u
+// Parameters:
+//   GameState, Ship_name ship, Orientation direction, struct coord (contains int row, int col)
+//  Returns:
+//   void
 
 // player_guess_check_u
 // Parameters:
-//   GameState, char direction, struct coord (contains int row, int col)
+//   GameState, Coordinates (contains int row, int col)
 //  Returns:
-//   int
+//   Output
+
+// player_guess_u
+// Parameters:
+//   GameState, Coordinates
+// Returns:
+//   string
 
 // bot_guess_u
 // Parameters:
@@ -68,6 +69,11 @@ enum Allow : unsigned char {Valid = 0, Invalid};
 struct Output {
     string print;
     Allow check;
+};
+
+struct Coordinates {
+    int row;
+    int col;
 };
 
 
@@ -112,10 +118,69 @@ void bot_place_ships_u(Game &game_state) {
 }
 
 //for web use
+Output player_place_ships_check_u(Game game_state, Ship_name ship = PT, Orientation direction = vertical, Coordinates coord = {-1,-1}) {
+    Output answer;
+    answer.check = Valid;
+    
+    if (coord.row == -1) {
+        answer.print += print_board(game_state.board_1_top);
+        answer.print += "-----------------------\n";
+        answer.print += print_board(game_state.board_1_bottom);
+        answer.print += "Place " + game_state.ship_type[ship].long_name + ". Length: " + to_string(game_state.ship_type[ship].length) + ". Symbol: " + game_state.ship_type[ship].ch_name + "\n";
+        answer.print += "Choose orientation and coordinates. Ship will face down/right: ";
+        answer.check = Invalid;
+        return answer;
+    }
+    
+    if (direction == horizontal) {
+        if (coord.col > 10-game_state.ship_type[ship].length) {
+            answer.print += "Invalid coordinates. Ship must fit on the board.";
+            answer.check = Invalid;
+            return answer;
+        }
+        else {
+            for (int i=0; i<game_state.ship_type[ship].length; i++){
+                if (game_state.board_1_bottom[coord.row*10+coord.col+i]!='.') {answer.check = Invalid;}
+            }
+            if (answer.check == Invalid) {
+                answer.print += "Invalid coordinates. Ships cannot overlap.";
+                return answer;
+            }
+        }
+    }
+    else {
+        if (coord.row > 10-game_state.ship_type[ship].length) {
+            answer.print += "Invalid coordinates. Ship must fit on the board.";
+            answer.check = Invalid;
+            return answer;
+        }
+        else {
+            for (int i=0; i<game_state.ship_type[ship].length; i++){
+                if (game_state.board_1_bottom[(coord.row+i)*10+coord.col]!='.') {answer.check = Invalid;}
+            }
+            if (answer.check == Invalid) {
+                answer.print += "Invalid coordinates. Ships cannot overlap.";
+                return answer;
+            }
+        }
+    }
+    
+    return answer;
+}
+
+//for web use
 //update when cin works
-void player_place_ships_u(Game &game_state) {
-    for (int i=0; i<5; i++) {
-        bot_place_ship(game_state.board_1_bottom, game_state.ship_type[i]);
+void player_place_ships_u(Game &game_state, Ship_name ship, Orientation direction, Coordinates coord) {
+    //places ships on board
+    if (direction == horizontal){
+        for (int i=0; i<game_state.ship_type[ship].length; i++){
+            game_state.board_1_bottom[coord.row*10+coord.col+i] = game_state.ship_type[ship].ch_name;
+        }
+    }
+    else {
+        for (int i=0; i<game_state.ship_type[ship].length; i++){
+            game_state.board_1_bottom[(coord.row+i)*10+coord.col] = game_state.ship_type[ship].ch_name;
+        }
     }
 }
 
@@ -153,25 +218,38 @@ string bot_guess_u(Game &game_state) {
     return print;
 }
 
-string player_guess_u(Game &game_state) {
+Output player_guess_check_u(Game game_state, Coordinates coord = {-1,-1}) {
+    Output answer;
+    answer.check = Valid;
+    
+    if (coord.row == -1) {
+        answer.print += "Your turn. ";
+        
+        //display top and bottom board to player
+        answer.print += print_board(game_state.board_1_top);
+        answer.print += "-----------------------\n";
+        answer.print += print_board(game_state.board_1_bottom);
+        //player takes turn and makes guess
+
+        answer.print += "Guess coordinates: ";
+        answer.check = Invalid;
+        return answer;
+    }
+    
+    if (game_state.board_1_top[coord.row*10+coord.col] != '.') {
+        answer.print += "Coordinate alreay guessed. Choose another coordinate.\n";
+        answer.check = Invalid;
+        return answer;
+    }
+    
+    return answer;
+}
+
+string player_guess_u(Game &game_state, Coordinates coord) {
     string print;
-    int guess = 0;
-    
-    //display top and bottom board to player
-    print += print_board(game_state.board_1_top);
-    print += "-----------------------\n";
-    print += print_board(game_state.board_1_bottom);
-    //player takes turn and makes guess
+    int guess;
+    guess = coord.row*10+coord.col;
 
-    print += "Your turn. ";
-    
-    //temp bot guess for player
-    guess = bot_guess_2(game_state.board_1_top);
-
-    print += to_string(guess);
-    /* implement player guessing system when cin works
-    guess = valid_guess(game_state.board_1_top); //input player guessed square
-     */
      
     print += update_board(game_state.board_1_top, game_state.board_2_bottom, guess, game_state.ship_type); //update board based on guess
     
@@ -211,7 +289,6 @@ Output end_game_u(Game &game_state) {
     }
     return answer;
 }
-
 
 
 
